@@ -3,6 +3,7 @@
   "displayName": "Wireless Debug",
   "description": "Wireless Android debugging using adb pair and connect",
   "version": "0.0.1",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.60.0"
   },
