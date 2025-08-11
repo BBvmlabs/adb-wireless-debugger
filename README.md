@@ -54,7 +54,7 @@ ADB commands run under the hood:
 adb pair 192.168.1.45:5555
 # (pair code sent as input)
 adb connect 192.168.1.45:5555
-
+```
 
 ## License
 
