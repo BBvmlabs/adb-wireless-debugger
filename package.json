@@ -1,0 +1,27 @@
+{
+  "name": "wireless-debug-extension",
+  "displayName": "Wireless Debug",
+  "description": "Wireless Android debugging using adb pair and connect",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "activationEvents": [
+    "onCommand:wirelessDebug.pair",
+    "onCommand:wirelessDebug.connect"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "wirelessDebug.pair",
+        "title": "ADB Wireless Debug: Pair Device"
+      },
+      {
+        "command": "wirelessDebug.connect",
+        "title": "ADB Wireless Debug: Connect to Device"
+      }
+    ]
+  },
+  "dependencies": {}
+}
