@@ -1,5 +1,6 @@
 {
   "name": "wireless-debug-extension",
+  "publisher": "bbvmlabs",
   "displayName": "Wireless Debug",
   "description": "Wireless Android debugging using adb pair and connect",
   "version": "0.0.1",
