@@ -1,65 +1,79 @@
-# adb-wireless-debugger README
+# Wireless Debug VS Code Extension
 
-This is the README for your extension "adb-wireless-debugger". After writing up a brief description, we recommend including the following sections.
+A Visual Studio Code extension to simplify wireless debugging of Android devices using ADB pairing and connecting commands.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Lists your active network IP addresses for easy selection
+- Prompts for device IP (last digits only) and port number based on your network
+- Supports ADB wireless debugging pair code input
+- Provides commands to pair and connect your Android device wirelessly
+- Works with system hotspot and standard Wi-Fi networks
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- [ADB (Android Debug Bridge)](https://developer.android.com/studio/command-line/adb) must be installed and added to your system PATH
+- Your Android device should have **Wireless Debugging** enabled and show a pairing code
 
-## Extension Settings
+## Usage
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Commands
 
-For example:
+- **Wireless Debug: Pair Device**  
+  Starts the pairing process:  
+  1. Select your network IP (e.g., `192.168.1.1`)  
+  2. Enter the last digits of your device IP (e.g., `45`) and port number (usually `5555`)  
+  3. Enter the 6-digit wireless debugging pair code shown on your Android device  
+  4. Optionally connect immediately by entering device port number again  
 
-This extension contributes the following settings:
+- **Wireless Debug: Connect to Device**  
+  Connects to your device without pairing:  
+  1. Select your network IP  
+  2. Enter the last digits of your device IP and port number  
+  3. Connects via `adb connect ip:port`  
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+### Running the commands
 
-## Known Issues
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)  
+2. Type and select `Wireless Debug: Pair Device` or `Wireless Debug: Connect to Device`  
+3. Follow the prompts  
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## Example
 
-## Release Notes
+If your network IP is `192.168.1.1`, device IP is `192.168.1.45`, and port is `5555`:
 
-Users appreciate release notes as you update your extension.
+- Select `192.168.1.1` from network list  
+- Enter `45` for last digits of device IP  
+- Enter `5555` as port number  
+- Enter the 6-digit pair code from your device (for pairing)  
+- Optionally connect immediately  
 
-### 1.0.0
+ADB commands run under the hood:
 
-Initial release of ...
+```bash
+adb pair 192.168.1.45:5555
+# (pair code sent as input)
+adb connect 192.168.1.45:5555
 
-### 1.0.1
 
-Fixed issue #.
+## License
 
-### 1.1.0
+MIT License © 2025 BBVMLABS
 
-Added features X, Y, and Z.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
----
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
