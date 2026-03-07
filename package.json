@@ -1,7 +1,7 @@
 {
   "name": "wireless-debug-extension",
   "publisher": "bbvmlabs",
-  "displayName": "Wireless Debug",
+  "displayName": "[Dev] Wireless Debug",
   "description": "Wireless Android debugging using adb pair and connect",
   "version": "0.0.1",
   "license": "MIT",
@@ -9,21 +9,191 @@
     "vscode": "^1.60.0"
   },
   "activationEvents": [
+    "onView:adbDevices",
     "onCommand:wirelessDebug.pair",
-    "onCommand:wirelessDebug.connect"
+    "onCommand:wirelessDebug.pairQr",
+    "onCommand:wirelessDebug.connect",
+    "onCommand:wirelessDebug.refreshDevices",
+    "onCommand:wirelessDebug.disconnect",
+    "onCommand:wirelessDebug.mirror",
+    "onCommand:wirelessDebug.logcat",
+    "onCommand:wirelessDebug.screenshot",
+    "onCommand:wirelessDebug.switchToWireless",
+    "onCommand:wirelessDebug.reboot"
   ],
   "main": "./extension.js",
   "contributes": {
+    "configuration": {
+      "title": "ADB Wireless Debug",
+      "properties": {
+        "wirelessDebug.scrcpyPath": {
+          "type": "string",
+          "default": "scrcpy",
+          "description": "Path to the scrcpy executable. Default is 'scrcpy' (must be in PATH)."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "adb-wireless-view",
+          "title": "ADB Wireless",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "adb-wireless-view": [
+        {
+          "id": "adbDevices",
+          "name": "Devices"
+        }
+      ]
+    },
     "commands": [
       {
+        "command": "wirelessDebug.refreshDevices",
+        "title": "Refresh Devices",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "wirelessDebug.clearHistory",
+        "title": "Clear History",
+        "icon": "$(trash)"
+      },
+      {
         "command": "wirelessDebug.pair",
-        "title": "ADB Wireless Debug: Pair Device"
+        "title": "Pair Device via Code"
+      },
+      {
+        "command": "wirelessDebug.pairQr",
+        "title": "Pair Device via QR Code",
+        "icon": "$(device-camera)"
       },
       {
         "command": "wirelessDebug.connect",
-        "title": "ADB Wireless Debug: Connect to Device"
+        "title": "Connect to Device",
+        "icon": "$(link)"
+      },
+      {
+        "command": "wirelessDebug.disconnect",
+        "title": "Disconnect Device"
+      },
+      {
+        "command": "wirelessDebug.mirror",
+        "title": "Screen Mirror (scrcpy)",
+        "icon": "$(display)"
+      },
+      {
+        "command": "wirelessDebug.logcat",
+        "title": "Open Logcat",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "wirelessDebug.screenshot",
+        "title": "Take Screenshot",
+        "icon": "$(camera)"
+      },
+      {
+        "command": "wirelessDebug.switchToWireless",
+        "title": "Switch to Wireless mode",
+        "icon": "$(rss)"
+      },
+      {
+        "command": "wirelessDebug.autoConnect",
+        "title": "Auto-Discover & Connect",
+        "icon": "$(broadcast)"
+      },
+      {
+        "command": "wirelessDebug.liveView",
+        "title": "Live View (Internal Mirror)",
+        "icon": "$(vm-active)"
+      },
+      {
+        "command": "wirelessDebug.reboot",
+        "title": "Reboot Device",
+        "icon": "$(sync)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "wirelessDebug.refreshDevices",
+          "when": "view == adbDevices",
+          "group": "navigation@1"
+        },
+        {
+          "command": "wirelessDebug.autoConnect",
+          "when": "view == adbDevices",
+          "group": "navigation@2"
+        },
+        {
+          "command": "wirelessDebug.pairQr",
+          "when": "view == adbDevices",
+          "group": "navigation@3"
+        },
+        {
+          "command": "wirelessDebug.pair",
+          "when": "view == adbDevices",
+          "group": "navigation@4"
+        },
+        {
+          "command": "wirelessDebug.connect",
+          "when": "view == adbDevices",
+          "group": "navigation@5"
+        },
+        {
+          "command": "wirelessDebug.clearHistory",
+          "when": "view == adbDevices",
+          "group": "navigation@6"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "wirelessDebug.connect",
+          "when": "view == adbDevices && viewItem == recentDevice",
+          "group": "inline"
+        },
+        {
+          "command": "wirelessDebug.liveView",
+          "when": "view == adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
+          "group": "inline"
+        },
+        {
+          "command": "wirelessDebug.mirror",
+          "when": "view == adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
+          "group": "1_actions"
+        },
+        {
+          "command": "wirelessDebug.logcat",
+          "when": "view == adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
+          "group": "1_actions"
+        },
+        {
+          "command": "wirelessDebug.screenshot",
+          "when": "view == adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
+          "group": "1_actions"
+        },
+        {
+          "command": "wirelessDebug.switchToWireless",
+          "when": "view == adbDevices && viewItem == connectedDeviceUsb",
+          "group": "2_mode"
+        },
+        {
+          "command": "wirelessDebug.disconnect",
+          "when": "view == adbDevices && viewItem == connectedDeviceWireless",
+          "group": "3_status"
+        },
+        {
+          "command": "wirelessDebug.reboot",
+          "when": "view == adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
+          "group": "z_danger"
+        }
+      ]
+    }
   },
-  "dependencies": {}
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0"
+  }
 }
