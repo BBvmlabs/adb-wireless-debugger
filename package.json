@@ -1,9 +1,10 @@
 {
   "name": "wireless-debug-extension",
   "publisher": "bbvmlabs",
-  "displayName": "[Dev] Wireless Debug",
+  "displayName": "Wireless Debug",
   "description": "Wireless Android debugging using adb pair and connect",
-  "version": "0.0.1",
+  "version": "1.0.2",
+  "icon": "media/icon.png",
   "license": "MIT",
   "engines": {
     "vscode": "^1.60.0"
@@ -38,7 +39,7 @@
         {
           "id": "adb-wireless-view",
           "title": "ADB Wireless",
-          "icon": "media/icon.svg"
+          "icon": "media/logo.svg"
         }
       ]
     },
