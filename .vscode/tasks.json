@@ -16,7 +16,7 @@
 		{
 			"label": "Build Extension (Prod)",
 			"type": "shell",
-			"command": "node ./scripts/set-flavor.js prod && npx vsce package",
+			"command": "npm run package",
 			"group": {
 				"kind": "build",
 				"isDefault": true

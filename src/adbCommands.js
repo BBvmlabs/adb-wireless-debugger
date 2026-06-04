@@ -152,8 +152,8 @@ async function autoDiscoverConnect(provider) {
                     "No devices found. Make sure Wireless Debugging is ON and both devices are on the same network.",
                     'Pair via Code', 'Pair via QR'
                 ).then(choice => {
-                    if (choice === 'Pair via Code') vscode.commands.executeCommand('dev.wirelessDebug.pair');
-                    if (choice === 'Pair via QR') vscode.commands.executeCommand('dev.wirelessDebug.pairQr');
+                    if (choice === 'Pair via Code') vscode.commands.executeCommand('wirelessDebug.pair');
+                    if (choice === 'Pair via QR') vscode.commands.executeCommand('wirelessDebug.pairQr');
                 });
                 return;
             }
