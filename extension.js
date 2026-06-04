@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const dns = require('dns');
 const { AdbDeviceProvider } = require('./src/adbProvider');
+const { AdbToolbarProvider } = require('./src/adbToolbarProvider');
 
 // Fix for slow IPv6 resolution on some systems
 if (dns.setDefaultAutoSelectFamilyAttemptTimeout) {
@@ -18,34 +19,41 @@ const {
 async function activate(context) {
     const provider = new AdbDeviceProvider(context);
 
-    // Check extension mode
-    const isDev = context.extensionMode === vscode.ExtensionMode.Development;
-    const title = isDev ? 'Dev Devices' : 'Devices';
+    // Check extension flavor from package name (starts with 'dev-')
+    const isDev = context.extension.packageJSON.name.startsWith('dev-');
+    const viewTitle = isDev ? 'Dev-Devices' : 'Devices';
 
-    // Register the TreeView with dynamic title
-    const treeView = vscode.window.createTreeView('adbDevices', {
+    // Register the TreeView
+    const treeView = vscode.window.createTreeView('dev-adbDevices', {
         treeDataProvider: provider,
         showCollapseAll: true
     });
-    treeView.title = title;
+    treeView.title = viewTitle;
+
+    // Register the toolbar WebviewView
+    const toolbarProvider = new AdbToolbarProvider(context, isDev);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('dev-adbToolbar', toolbarProvider)
+    );
 
     const commands = [
-        vscode.commands.registerCommand('wirelessDebug.refreshDevices', () => provider.refresh()),
-        vscode.commands.registerCommand('wirelessDebug.autoConnect', () => autoDiscoverConnect(provider)),
-        vscode.commands.registerCommand('wirelessDebug.clearHistory', () => provider.clearHistory()),
-        vscode.commands.registerCommand('wirelessDebug.pair', () => pairDevice(provider)),
-        vscode.commands.registerCommand('wirelessDebug.pairQr', () => wirelessPairingQr(provider)),
-        vscode.commands.registerCommand('wirelessDebug.connect', (d) => connectDevice(provider, d)),
-        vscode.commands.registerCommand('wirelessDebug.disconnect', (d) => d && disconnectDevice(d, provider)),
-        vscode.commands.registerCommand('wirelessDebug.mirror', async (d) => await mirrorDevice(d || await selectDevice(provider))),
-        vscode.commands.registerCommand('wirelessDebug.liveView', async (d) => await startLiveView(d || await selectDevice(provider))),
-        vscode.commands.registerCommand('wirelessDebug.logcat', (d) => d && openLogcat(d)),
-        vscode.commands.registerCommand('wirelessDebug.screenshot', (d) => d && takeScreenshot(d)),
-        vscode.commands.registerCommand('wirelessDebug.switchToWireless', (d) => d && switchToWireless(d, provider)),
-        vscode.commands.registerCommand('wirelessDebug.reboot', (d) => d && rebootDevice(d, provider))
+        vscode.commands.registerCommand('dev.wirelessDebug.refreshDevices', () => provider.refresh()),
+        vscode.commands.registerCommand('dev.wirelessDebug.autoConnect', () => autoDiscoverConnect(provider)),
+        vscode.commands.registerCommand('dev.wirelessDebug.clearHistory', () => provider.clearHistory()),
+        vscode.commands.registerCommand('dev.wirelessDebug.pair', () => pairDevice(provider)),
+        vscode.commands.registerCommand('dev.wirelessDebug.pairQr', () => wirelessPairingQr(provider)),
+        vscode.commands.registerCommand('dev.wirelessDebug.connect', (d) => connectDevice(provider, d)),
+        vscode.commands.registerCommand('dev.wirelessDebug.disconnect', (d) => d && disconnectDevice(d, provider)),
+        vscode.commands.registerCommand('dev.wirelessDebug.mirror', async (d) => await mirrorDevice(d || await selectDevice(provider))),
+        vscode.commands.registerCommand('dev.wirelessDebug.liveView', async (d) => await startLiveView(d || await selectDevice(provider))),
+        vscode.commands.registerCommand('dev.wirelessDebug.logcat', (d) => d && openLogcat(d)),
+        vscode.commands.registerCommand('dev.wirelessDebug.screenshot', (d) => d && takeScreenshot(d)),
+        vscode.commands.registerCommand('dev.wirelessDebug.switchToWireless', (d) => d && switchToWireless(d, provider)),
+        vscode.commands.registerCommand('dev.wirelessDebug.reboot', (d) => d && rebootDevice(d, provider)),
+        vscode.commands.registerCommand('dev.wirelessDebug.deleteHistoryItem', (d) => d && provider.deleteHistoryItem(d)),
     ];
 
-    context.subscriptions.push(provider, ...commands);
+    context.subscriptions.push(provider, treeView, ...commands);
 }
 
 async function selectDevice(provider) {

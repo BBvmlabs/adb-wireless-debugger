@@ -1,79 +1,63 @@
-# Wireless Debug VS Code Extension
+# ADB Wireless Debugger VS Code Extension
 
-A Visual Studio Code extension to simplify wireless debugging of Android devices using ADB pairing and connecting commands.
+An elegant and powerful Visual Studio Code extension to simplify wireless debugging of Android devices using ADB. Easily connect, pair (via Code or QR), view logs, and mirror your device screen seamlessly in real time!
 
-## Features
+## 🚀 What's New in Version 1.1.0
 
-- Lists your active network IP addresses for easy selection
-- Prompts for device IP (last digits only) and port number based on your network
-- Supports ADB wireless debugging pair code input
-- Provides commands to pair and connect your Android device wirelessly
-- Works with system hotspot and standard Wi-Fi networks
+### 📺 Buttery Smooth Live View (Screen Mirroring)
+- **High-Performance Streaming:** Fully redesigned live-view screen mirroring streaming at **30+ FPS**.
+- **Native H.264 Video Stream:** Uses high-efficiency continuous `adb exec-out screenrecord` parsed and played natively using `jmuxer` in a VS Code webview.
+- **Low Latency:** Experience seamless screen mirror interaction with minimal delay.
 
-## Requirements
+### ⚡ Elegant Webview Sidebar Dashboard
+- A sleek, unified control panel in the VS Code Sidebar.
+- Quick actions for connecting, pairing, and managing devices.
+- Support for **Auto-Discovery**, **Pair via QR**, **Pair via Code**, and **Direct IP Connection**.
 
-- [ADB (Android Debug Bridge)](https://developer.android.com/studio/command-line/adb) must be installed and added to your system PATH
-- Your Android device should have **Wireless Debugging** enabled and show a pairing code
+### 🔍 Smart Network Auto-Discovery
+- Automatically scans your local area network (LAN) for debug-ready Android devices.
+- Leverages mDNS/DNS-SD (Bonjour) and ARP table lookups for swift detection.
+- Click to connect or pair immediately without manually keying in IPs.
 
-## Usage
+### 🔋 Rich Device Insights & Inline Controls
+- View device states, release versions, and **real-time battery percentage indicators**.
+- Quick, inline action buttons to:
+  - **Live View** (Internal Screen Mirror)
+  - **Logcat** (Streams logs to VS Code Debug Console)
+  - **Disconnect** wireless devices
+  - **Delete History** items
 
-### Commands
+---
 
-- **Wireless Debug: Pair Device**  
-  Starts the pairing process:  
-  1. Select your network IP (e.g., `192.168.1.1`)  
-  2. Enter the last digits of your device IP (e.g., `45`) and port number (usually `5555`)  
-  3. Enter the 6-digit wireless debugging pair code shown on your Android device  
-  4. Optionally connect immediately by entering device port number again  
+## 🛠️ Requirements
 
-- **Wireless Debug: Connect to Device**  
-  Connects to your device without pairing:  
-  1. Select your network IP  
-  2. Enter the last digits of your device IP and port number  
-  3. Connects via `adb connect ip:port`  
+1. **ADB (Android Debug Bridge)** must be installed and added to your system's environment `PATH` variable.
+2. An Android device on the same local network with **Wireless Debugging** enabled (found under Developer Options).
+3. (Optional) For external screen mirroring via windowed mode, [scrcpy](https://github.com/Genymobile/scrcpy) can be installed on your system.
 
-### Running the commands
+---
 
-1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)  
-2. Type and select `Wireless Debug: Pair Device` or `Wireless Debug: Connect to Device`  
-3. Follow the prompts  
+## 📖 Usage & Commands
 
-## Example
+### Sidebar Panel Buttons
+Open the **ADB Wireless** tab in the Activity Bar to access the control panel:
+- **Auto-Discover & Connect:** Scan network and connect to visible debugging endpoints automatically.
+- **Pair via QR:** Displays a QR code terminal to pair your phone instantly by scanning it using your device's Wireless Debugging QR code scanner.
+- **Pair via Code:** Enter the 6-digit pair code from your developer options screen.
+- **Connect IP:** Direct connect input by typing device IP and port.
+- **Refresh:** Reload the active device tree.
+- **Clear History:** Erase all stored device connection histories.
 
-If your network IP is `192.168.1.1`, device IP is `192.168.1.45`, and port is `5555`:
+### Context Actions on Device List
+Right-click or hover over a device in the tree view to access:
+- **Live View (30+ FPS):** Stream phone screen directly into a VS Code tab.
+- **Open Logcat:** Stream Android system logs into a dedicated VS Code console window.
+- **Switch to Wireless mode:** Enable wireless debugging on a USB-connected device.
+- **Take Screenshot:** Instantly capture the device screen.
+- **Reboot Device:** Perform a system reboot command via ADB.
 
-- Select `192.168.1.1` from network list  
-- Enter `45` for last digits of device IP  
-- Enter `5555` as port number  
-- Enter the 6-digit pair code from your device (for pairing)  
-- Optionally connect immediately  
+---
 
-ADB commands run under the hood:
+## 📝 License
 
-```bash
-adb pair 192.168.1.45:5555
-# (pair code sent as input)
-adb connect 192.168.1.45:5555
-```
-
-## License
-
-MIT License © 2025 BBVMLABS
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+MIT License © 2026 BBVMLABS

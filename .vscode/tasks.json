@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "set-flavor-dev",
+			"type": "shell",
+			"command": "node ./scripts/set-flavor.js dev",
+			"problemMatcher": []
+		},
+		{
+			"label": "set-flavor-prod",
+			"type": "shell",
+			"command": "node ./scripts/set-flavor.js prod",
+			"problemMatcher": []
+		},
+		{
+			"label": "Build Extension (Prod)",
+			"type": "shell",
+			"command": "node ./scripts/set-flavor.js prod && npx vsce package",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		}
+	]
+}

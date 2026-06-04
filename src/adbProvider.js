@@ -1,6 +1,11 @@
 const vscode = require('vscode');
 const { getAdbDevices, getCurrentNetwork, discoverAdbServices } = require('./utils');
 
+// Section label constants — must match exactly in getChildren()
+const SEC_CONNECTED   = 'Connected';
+const SEC_DISCOVERED  = 'Discovered (Nearby)';
+const SEC_HISTORY     = 'History / Recent';
+
 class AdbDeviceProvider {
     constructor(context) {
         this.context = context;
@@ -12,19 +17,29 @@ class AdbDeviceProvider {
     }
 
     startDiscoveryLoop() {
-        setInterval(async () => {
-            const pairing = await discoverAdbServices('pairing');
-            const connecting = await discoverAdbServices('connect');
+        this._runDiscovery();
+        setInterval(() => this._runDiscovery(), 8000);
+    }
 
-            // Combine and mark types
+    async _runDiscovery() {
+        try {
+            const [pairing, connecting] = await Promise.all([
+                discoverAdbServices('pairing'),
+                discoverAdbServices('connect')
+            ]);
+
+            const seen = new Set();
             this.discovered = [
                 ...pairing.map(d => ({ ...d, discoveryType: 'pairing', id: d.ipPort })),
                 ...connecting.map(d => ({ ...d, discoveryType: 'connect', id: d.ipPort }))
-            ];
+            ].filter(d => {
+                if (seen.has(d.ipPort)) return false;
+                seen.add(d.ipPort);
+                return true;
+            });
 
-            // Only refresh if discovery is currently expanded or seen
             this.refresh();
-        }, 5000); // Scan every 5 seconds
+        } catch (e) { /* silent */ }
     }
 
     refresh() {
@@ -32,43 +47,84 @@ class AdbDeviceProvider {
     }
 
     getTreeItem(element) {
-        if (element.isSection) {
-            const item = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.Expanded);
-            item.contextValue = element.contextValue;
+        // Placeholder items
+        if (element.isPlaceholder) {
+            const item = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
+            item.iconPath = new vscode.ThemeIcon('info');
+            item.contextValue = 'placeholder';
             return item;
         }
 
+        // Section headers
+        if (element.isSection) {
+            const item = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.Expanded);
+            item.contextValue = element.contextValue || 'section';
+            return item;
+        }
+
+        // Discovered nearby devices
         if (element.discoveryType) {
+            const isPairing = element.discoveryType === 'pairing';
             const item = new vscode.TreeItem(
                 element.name || 'Unknown Device',
                 vscode.TreeItemCollapsibleState.None
             );
-            item.description = `${element.discoveryType === 'pairing' ? 'Ready to Pair' : 'Available to Connect'} (${element.ipPort})`;
-            item.iconPath = new vscode.ThemeIcon(element.discoveryType === 'pairing' ? 'star-empty' : 'broadcast');
-            item.contextValue = element.discoveryType === 'pairing' ? 'discoveredPairing' : 'discoveredConnect';
-            item.tooltip = `Auto-discovered via mDNS\nType: ${element.discoveryType}\nTarget: ${element.ipPort}`;
+            item.description = isPairing
+                ? `Ready to Pair  ·  ${element.ipPort}`
+                : `Tap to Connect  ·  ${element.ipPort}`;
+            item.iconPath = new vscode.ThemeIcon(isPairing ? 'star-empty' : 'broadcast');
+            item.contextValue = isPairing ? 'discoveredPairing' : 'discoveredConnect';
+            item.tooltip = new vscode.MarkdownString(
+                `**${element.name || 'Device'}**\n\n` +
+                `- Type: \`${element.discoveryType}\`\n` +
+                `- Address: \`${element.ipPort}\`\n\n` +
+                (isPairing ? '*Click to pair this device*' : '*Click to connect to this device*')
+            );
             return item;
         }
 
+        // Active & history devices
         const isHistory = element.state === 'offline';
         const title = element.model || element.id;
-        const version = element.version ? ` [A${element.version}]` : '';
-        const battery = element.battery ? ` (${element.battery}%)` : '';
+        const versionStr = element.version ? ` · A${element.version}` : '';
 
         const item = new vscode.TreeItem(
-            `${title}${version}${isHistory ? ' [History]' : ''}`,
+            isHistory ? title : `${title}${versionStr}`,
             vscode.TreeItemCollapsibleState.None
         );
 
-        item.description = isHistory ? `Network: ${element.network || 'Unknown'}` : `${element.state}${battery}`;
-        item.tooltip = `ID: ${element.id}\nModel: ${element.model || 'Unknown'}\nAndroid: ${element.version || '?'}\nBattery: ${element.battery || '?'}\nConnection: ${element.type}\nStatus: ${element.state}`;
-
         if (isHistory) {
+            const lastSeen = element.lastSeen
+                ? new Date(element.lastSeen).toLocaleString()
+                : 'Unknown';
+            item.description = `Offline  ·  ${element.network || 'Unknown network'}`;
             item.iconPath = new vscode.ThemeIcon('history');
             item.contextValue = 'recentDevice';
+            item.tooltip = new vscode.MarkdownString(
+                `**${title}** *(History)*\n\n` +
+                `- ID: \`${element.id}\`\n` +
+                `- Last network: \`${element.network || 'Unknown'}\`\n` +
+                `- Last seen: ${lastSeen}`
+            );
         } else {
-            item.iconPath = element.type === 'usb' ? new vscode.ThemeIcon('symbol-property') : new vscode.ThemeIcon('remote-explorer-item');
+            // Battery display — show prominently in description
+            const batteryDisplay = element.battery && element.battery !== '?'
+                ? `  🔋 ${element.battery}%`
+                : '';
+            item.description = `${element.state}${batteryDisplay}`;
+            item.iconPath = element.type === 'usb'
+                ? new vscode.ThemeIcon('plug')
+                : new vscode.ThemeIcon('wifi');
             item.contextValue = element.type === 'usb' ? 'connectedDeviceUsb' : 'connectedDeviceWireless';
+            item.tooltip = new vscode.MarkdownString(
+                `**${title}**\n\n` +
+                `| | |\n|---|---|\n` +
+                `| ID | \`${element.id}\` |\n` +
+                `| Android | ${element.version || '?'} |\n` +
+                `| Battery | ${element.battery ? element.battery + '%' : '?'} |\n` +
+                `| Type | ${element.type === 'usb' ? '🔌 USB' : '📶 Wireless'} |\n` +
+                `| Status | ${element.state} |`
+            );
         }
 
         return item;
@@ -76,26 +132,32 @@ class AdbDeviceProvider {
 
     async getChildren(element) {
         if (!element) {
-            // Root elements: Sections
             return [
-                { isSection: true, label: 'Connected', contextValue: 'section' },
-                { isSection: true, label: 'Discovered (Nearby)', contextValue: 'discoveryHeader' },
-                { isSection: true, label: 'History / Recent', contextValue: 'historyHeader' }
+                { isSection: true, label: SEC_CONNECTED,  contextValue: 'section' },
+                { isSection: true, label: SEC_DISCOVERED, contextValue: 'discoveryHeader' },
+                { isSection: true, label: SEC_HISTORY,    contextValue: 'historyHeader' }
             ];
         }
 
-        if (element.label === 'Connected') {
+        if (element.label === SEC_CONNECTED) {
             this.devices = await getAdbDevices();
             this.saveToHistory(this.devices);
-            return this.devices;
+            return this.devices.length > 0
+                ? this.devices
+                : [{ isPlaceholder: true, label: 'No devices connected' }];
         }
 
-        if (element.label === 'Discovered (Nearby)') {
-            return this.discovered;
+        if (element.label === SEC_DISCOVERED) {
+            return this.discovered.length > 0
+                ? this.discovered
+                : [{ isPlaceholder: true, label: 'Scanning for nearby devices…' }];
         }
 
-        if (element.label === 'History / Recent') {
-            return this.getHistory();
+        if (element.label === SEC_HISTORY) {
+            const hist = this.getHistory();
+            return hist.length > 0
+                ? hist
+                : [{ isPlaceholder: true, label: 'No history yet' }];
         }
 
         return [];
@@ -107,28 +169,22 @@ class AdbDeviceProvider {
 
         activeDevices.forEach(d => {
             if (d.state !== 'device') return;
-
-            const existingIndex = history.findIndex(h => h.id === d.id);
+            const idx = history.findIndex(h => h.id === d.id);
             const entry = {
                 id: d.id,
                 model: d.model,
                 version: d.version,
                 type: d.type,
-                network: net.id,
-                lastSeen: new Date().getTime(),
+                network: net ? net.address : 'Unknown',
+                lastSeen: Date.now(),
                 state: 'offline'
             };
-
-            if (existingIndex > -1) {
-                history[existingIndex] = entry;
-            } else {
-                history.push(entry);
-            }
+            if (idx > -1) history[idx] = entry;
+            else history.push(entry);
         });
 
-        // Limit to last 10 devices
-        const sortedHistory = history.sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 10);
-        this.context.globalState.update('adbRecentDevices', sortedHistory);
+        const sorted = history.sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 10);
+        this.context.globalState.update('adbRecentDevices', sorted);
     }
 
     getHistory() {
@@ -137,6 +193,13 @@ class AdbDeviceProvider {
 
     clearHistory() {
         this.context.globalState.update('adbRecentDevices', []);
+        this.refresh();
+    }
+
+    deleteHistoryItem(item) {
+        const history = this.context.globalState.get('adbRecentDevices', []);
+        const updated = history.filter(h => h.id !== item.id);
+        this.context.globalState.update('adbRecentDevices', updated);
         this.refresh();
     }
 }
