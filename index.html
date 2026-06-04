@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ADB Wireless Debugger - An elegant VS Code extension to simplify wireless debugging of Android devices.">
+    <title>ADB Wireless Debugger | VS Code Extension</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">ADB Wireless</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How it Works</a></li>
+            </ul>
+            <a href="https://github.com/BBvmlabs/adb-wireless-debugger" target="_blank" class="github-btn">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-container">
+                <div class="hero-content reveal">
+                    <div class="badge">v1.1.0 is here 🚀</div>
+                    <h1 class="hero-title">Wireless Android Debugging, <br><span class="gradient-text">Redefined.</span></h1>
+                    <p class="hero-subtitle">Connect, pair, view logs, and mirror your Android device screen seamlessly in real-time, right from your Visual Studio Code.</p>
+                    <div class="hero-actions">
+                        <a href="https://marketplace.visualstudio.com/items?itemName=bbvmlabs.wireless-debug-extension" target="_blank" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Get on VS Code
+                        </a>
+                        <a href="https://open-vsx.org/extension/bbvmlabs/wireless-debug-extension" target="_blank" class="btn btn-secondary">
+                            Get on Open VSX
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-image-wrapper reveal delay-1">
+                    <img src="images/mockup.png" alt="ADB Wireless Debugger Interface" class="hero-image">
+                    <div class="image-glow"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>Powerful Features</h2>
+                    <p>Everything you need for seamless wireless debugging in one extension.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">📺</div>
+                        <h3>Buttery Smooth Live View</h3>
+                        <p>Fully redesigned screen mirroring streaming at 30+ FPS using native H.264 video stream. Experience minimal delay.</p>
+                    </div>
+                    <div class="feature-card reveal delay-1">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Elegant Sidebar Dashboard</h3>
+                        <p>A sleek, unified control panel to quickly connect, pair, and manage your devices directly from the VS Code sidebar.</p>
+                    </div>
+                    <div class="feature-card reveal delay-2">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Smart Network Auto-Discovery</h3>
+                        <p>Automatically scans your LAN using mDNS/DNS-SD and ARP lookups to find debug-ready Android devices instantly.</p>
+                    </div>
+                    <div class="feature-card reveal delay-3">
+                        <div class="feature-icon">🔋</div>
+                        <h3>Rich Device Insights</h3>
+                        <p>View device states, OS versions, and real-time battery percentages. Inline controls for Logcat, Live View, and more.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works">
+            <div class="container">
+                <div class="section-header reveal">
+                    <h2>How it Works</h2>
+                    <p>Get up and running in seconds.</p>
+                </div>
+                <div class="steps-container">
+                    <div class="step reveal">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Install Prerequisites</h3>
+                            <p>Ensure <strong>ADB (Android Debug Bridge)</strong> is installed and added to your system's PATH variable.</p>
+                        </div>
+                    </div>
+                    <div class="step reveal delay-1">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Enable Wireless Debugging</h3>
+                            <p>Connect your Android device to the same local network and enable "Wireless Debugging" in Developer Options.</p>
+                        </div>
+                    </div>
+                    <div class="step reveal delay-2">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Connect & Play</h3>
+                            <p>Use Auto-Discover, Pair via QR, or Pair via Code from the VS Code sidebar to connect instantly and start debugging!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-container">
+            <div class="footer-logo">
+                <span class="logo-icon">⚡</span>
+                <span>ADB Wireless Debugger</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://bbvmlabs.top" target="_blank">BBVMLABS</a>
+                <a href="https://portfolio.bbvmlabs.top" target="_blank">Portfolio</a>
+                <a href="https://github.com/bbvmlabs" target="_blank">GitHub</a>
+                <a href="https://www.linkedin.com/in/badhrins" target="_blank">LinkedIn</a>
+            </div>
+            <div class="footer-text">
+                <p>MIT License © 2026 BBVMLABS</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
