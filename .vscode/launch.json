@@ -6,12 +6,22 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Run Extension",
+			"name": "Run Extension (Dev)",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}"
-			]
+			],
+			"preLaunchTask": "set-flavor-dev"
+		},
+		{
+			"name": "Run Extension (Prod)",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			],
+			"preLaunchTask": "set-flavor-prod"
 		}
 	]
 }
