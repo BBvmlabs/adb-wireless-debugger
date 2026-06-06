@@ -175,7 +175,8 @@ class AdbDeviceProvider {
                 model: d.model,
                 version: d.version,
                 type: d.type,
-                network: net ? net.address : 'Unknown',
+                // If it's a wireless device (has an IP port), show the device IP instead of the host's subnet IP.
+                network: d.id.includes(':') ? d.id.split(':')[0] : (net ? net.name : 'Unknown'),
                 lastSeen: Date.now(),
                 state: 'offline'
             };

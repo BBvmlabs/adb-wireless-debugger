@@ -27,6 +27,7 @@
     "onCommand:dev.wirelessDebug.disconnect",
     "onCommand:dev.wirelessDebug.mirror",
     "onCommand:dev.wirelessDebug.logcat",
+    "onCommand:dev.wirelessDebug.stopLogcat",
     "onCommand:dev.wirelessDebug.screenshot",
     "onCommand:dev.wirelessDebug.switchToWireless",
     "onCommand:dev.wirelessDebug.reboot"
@@ -111,6 +112,11 @@
         "icon": "$(output)"
       },
       {
+        "command": "dev.wirelessDebug.stopLogcat",
+        "title": "Stop Logcat",
+        "icon": "$(close)"
+      },
+      {
         "command": "dev.wirelessDebug.screenshot",
         "title": "Take Screenshot",
         "icon": "$(camera)"
@@ -166,9 +172,14 @@
           "group": "inline@2"
         },
         {
-          "command": "dev.wirelessDebug.disconnect",
-          "when": "view == dev-adbDevices && viewItem == connectedDeviceWireless",
+          "command": "dev.wirelessDebug.stopLogcat",
+          "when": "view == dev-adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
           "group": "inline@3"
+        },
+        {
+          "command": "dev.wirelessDebug.disconnect",
+          "when": "view == dev-adbDevices && (viewItem == connectedDeviceUsb || viewItem == connectedDeviceWireless)",
+          "group": "inline@4"
         },
         {
           "command": "dev.wirelessDebug.mirror",

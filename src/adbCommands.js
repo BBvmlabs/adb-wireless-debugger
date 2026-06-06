@@ -20,12 +20,8 @@ async function mirrorDevice(device) {
 async function disconnectDevice(device, provider) {
     const deviceId = device.id;
     try {
-        if (deviceId.includes(':')) {
-            await execCommand(`adb disconnect ${deviceId}`);
-            vscode.window.showInformationMessage(`Disconnected from ${deviceId}`);
-        } else {
-            vscode.window.showWarningMessage('USB devices cannot be manually disconnected via ADB.');
-        }
+        await execCommand(`adb disconnect ${deviceId}`);
+        vscode.window.showInformationMessage(`Disconnected from ${deviceId}`);
         provider.refresh();
     } catch (e) {
         vscode.window.showErrorMessage(`Error: ${e}`);
@@ -315,27 +311,141 @@ async function switchToWireless(device, provider) {
     }
 }
 
+const activeLogcats = new Map();
+
 async function openLogcat(device) {
-    const outputChannel = vscode.window.createOutputChannel(`Logcat: ${device.model || device.id}`);
+    const packageName = await vscode.window.showInputBox({
+        prompt: "Enter package name to filter Logcat (leave empty for all)",
+        placeHolder: "e.g. com.example.myapp"
+    });
+
+    if (packageName === undefined) return; // User cancelled
+
+    if (activeLogcats.has(device.id)) {
+        const existing = activeLogcats.get(device.id);
+        if (existing.process) {
+            try { existing.process.kill(); } catch (e) {}
+        }
+        if (existing.pollTimeout) clearTimeout(existing.pollTimeout);
+        existing.channel.dispose();
+        activeLogcats.delete(device.id);
+    }
+
+    const outputChannel = vscode.window.createOutputChannel(`Logcat: ${device.model || device.id}`, 'log');
     outputChannel.show(true);
     outputChannel.appendLine(`╔════════════════════════════════════════╗`);
     outputChannel.appendLine(`║  Logcat — ${(device.model || device.id).padEnd(29)}║`);
     outputChannel.appendLine(`╚════════════════════════════════════════╝`);
-    outputChannel.appendLine('');
+    
+    if (!packageName.trim()) {
+        outputChannel.appendLine('');
+        const adb = spawn('adb', ['-s', device.id, 'logcat', '-v', 'time', 'color']);
+        activeLogcats.set(device.id, { process: adb, channel: outputChannel });
+        attachLogcatStreams(adb, outputChannel, device.id);
+    } else {
+        const pkg = packageName.trim();
+        let currentPid = null;
+        let adbProc = null;
+        
+        const entry = { process: null, channel: outputChannel, isPolling: true, pollTimeout: null };
+        activeLogcats.set(device.id, entry);
+        
+        outputChannel.appendLine(`[Searching for process: ${pkg}...]`);
 
-    const adb = spawn('adb', ['-s', device.id, 'logcat', '-v', 'time']);
+        const startFilteredStream = (pid) => {
+            outputChannel.appendLine(`[Process found! PID: ${pid}. Starting stream...]`);
+            outputChannel.appendLine('--------------------------------------------------');
+            adbProc = spawn('adb', ['-s', device.id, 'logcat', '--pid', pid, '-v', 'time', 'color']);
+            
+            const currentEntry = activeLogcats.get(device.id);
+            if (currentEntry) {
+                currentEntry.process = adbProc;
+            }
+
+            attachLogcatStreams(adbProc, outputChannel, device.id, (code) => {
+                adbProc = null;
+                const e = activeLogcats.get(device.id);
+                if (e) {
+                    e.process = null;
+                    e.isPolling = true;
+                    outputChannel.appendLine(`\n[Stream for PID ${pid} ended. Waiting for app to restart...]`);
+                    currentPid = null;
+                    pollForPid();
+                }
+            });
+        };
+
+        const pollForPid = () => {
+            const e = activeLogcats.get(device.id);
+            if (!e || !e.isPolling) return;
+
+            exec(`adb -s ${device.id} shell pidof ${pkg}`, (err, stdout) => {
+                const currentE = activeLogcats.get(device.id);
+                if (!currentE || !currentE.isPolling) return;
+
+                const pid = stdout ? stdout.trim() : '';
+                if (pid && pid !== currentPid) {
+                    currentPid = pid;
+                    currentE.isPolling = false;
+                    startFilteredStream(pid);
+                } else {
+                    currentE.pollTimeout = setTimeout(pollForPid, 2000);
+                }
+            });
+        };
+
+        pollForPid();
+    }
+}
+
+function attachLogcatStreams(adb, outputChannel, deviceId, onClose) {
+    let buffer = '';
+    let timeout = null;
 
     adb.stdout.on('data', (data) => {
-        outputChannel.append(data.toString());
+        buffer += data.toString();
+        
+        if (!timeout) {
+            timeout = setTimeout(() => {
+                outputChannel.append(buffer);
+                buffer = '';
+                timeout = null;
+            }, 100);
+        }
     });
 
     adb.stderr.on('data', (data) => {
-        outputChannel.append('[stderr] ' + data.toString());
+        outputChannel.append(`[ERROR]: ${data.toString()}`);
     });
 
     adb.on('close', (code) => {
-        outputChannel.appendLine(`\n--- Logcat process exited (code ${code}) ---`);
+        if (timeout) {
+            clearTimeout(timeout);
+            if (buffer) outputChannel.append(buffer);
+            timeout = null;
+        }
+        if (onClose) {
+            onClose(code);
+        } else {
+            outputChannel.appendLine(`\n[Logcat disconnected. Exit code: ${code}]`);
+            activeLogcats.delete(deviceId);
+        }
     });
+}
+
+async function stopLogcat(device) {
+    if (activeLogcats.has(device.id)) {
+        const existing = activeLogcats.get(device.id);
+        if (existing.process) {
+            try { existing.process.kill(); } catch (e) {}
+        }
+        if (existing.pollTimeout) clearTimeout(existing.pollTimeout);
+        existing.channel.dispose();
+        activeLogcats.delete(device.id);
+        vscode.window.showInformationMessage(`Stopped Logcat for ${device.model || device.id}`);
+    } else {
+        vscode.window.showInformationMessage(`No active Logcat running for ${device.model || device.id}`);
+    }
 }
 
 async function takeScreenshot(device) {
@@ -748,6 +858,6 @@ async function refreshDevicesCommand(provider) {
 
 module.exports = {
     mirrorDevice, disconnectDevice, pairDevice, connectDevice,
-    switchToWireless, openLogcat, takeScreenshot, rebootDevice, wirelessPairingQr,
+    switchToWireless, openLogcat, stopLogcat, takeScreenshot, rebootDevice, wirelessPairingQr,
     startLiveView, autoDiscoverConnect, refreshDevicesCommand
 };
