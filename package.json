@@ -3,7 +3,7 @@
   "publisher": "bbvmlabs",
   "displayName": "Dev Wireless Debug",
   "description": "Wireless Android debugging using adb pair and connect",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "icon": "media/icon.png",
   "license": "MIT",
   "repository": {
