@@ -110,7 +110,7 @@ async function getDeviceIp(deviceId) {
  * Enhanced mDNS discovery using `adb mdns services`.
  * Falls back to parsing service names without IPs (Android 11 bug workaround).
  */
-async function discoverAdbServices(type = 'connect') {
+async function discoverAdbServices(type = 'connect', skipArp = false) {
     const serviceType = type === 'pairing' ? '_adb-tls-pairing' : '_adb-tls-connect';
     const results = [];
 
@@ -155,12 +155,26 @@ async function discoverAdbServices(type = 'connect') {
     }
 
     // Fallback: if we got nothing from mdns, attempt ARP-table scan
-    if (results.length === 0 && type === 'connect') {
+    if (!skipArp && results.length === 0 && type === 'connect') {
         const arpResults = await discoverViaArp();
         results.push(...arpResults);
     }
 
-    return results;
+    // Deduplicate results by name, preferring IPv4 addresses
+    const uniqueMap = new Map();
+    for (const r of results) {
+        const existing = uniqueMap.get(r.name);
+        if (!existing) {
+            uniqueMap.set(r.name, r);
+        } else {
+            // If existing is not IPv4 and the new one is IPv4, replace it
+            if (!existing.ipPort.includes('.') && r.ipPort.includes('.')) {
+                uniqueMap.set(r.name, r);
+            }
+        }
+    }
+
+    return Array.from(uniqueMap.values());
 }
 
 /**

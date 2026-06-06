@@ -74,10 +74,39 @@ async function pairDevice(provider, discoveryItem) {
         }
 
         if (!ipPort) {
-            ipPort = await vscode.window.showInputBox({
-                prompt: `No devices found automatically. Enter IP:Port manually:`,
-                placeHolder: 'e.g. 192.168.1.5:44321'
+            let inputIp = await vscode.window.showInputBox({
+                prompt: `No devices found automatically. Enter device IP (port will be found automatically):`,
+                placeHolder: 'e.g. 192.168.1.5'
             });
+            if (inputIp) {
+                inputIp = inputIp.trim();
+                if (inputIp.includes(':')) {
+                    ipPort = inputIp;
+                } else {
+                    await vscode.window.withProgress({
+                        location: vscode.ProgressLocation.Notification,
+                        title: `Finding pairing port for ${inputIp}...`,
+                    }, async (progress) => {
+                        for (let attempt = 1; attempt <= 3; attempt++) {
+                            const discovered = await discoverAdbServices('pairing', true);
+                            const match = discovered.find(d => d.ipPort.startsWith(`${inputIp}:`));
+                            if (match) {
+                                ipPort = match.ipPort;
+                                break;
+                            }
+                            if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
+                        }
+                    });
+
+                    if (!ipPort) {
+                        const manualPort = await vscode.window.showInputBox({
+                            prompt: `Could not find pairing port. Enter port for ${inputIp}:`,
+                            placeHolder: 'e.g. 44321'
+                        });
+                        if (manualPort) ipPort = `${inputIp}:${manualPort.trim()}`;
+                    }
+                }
+            }
         }
     }
 
@@ -117,8 +146,19 @@ async function autoDiscoverConnect(provider) {
         cancellable: false
     }, async (progress) => {
         try {
-            progress.report({ message: 'Phase 1/2: mDNS discovery...' });
-            let discovered = await discoverAdbServices('connect');
+            let discovered = [];
+            for (let attempt = 1; attempt <= 4; attempt++) {
+                progress.report({ message: `Phase 1/2: mDNS discovery (Attempt ${attempt}/4)...` });
+                discovered = await discoverAdbServices('connect', true);
+                if (discovered.length > 0) break;
+                if (attempt < 4) await new Promise(r => setTimeout(r, 2000));
+            }
+
+            // Fallback to ARP scan
+            if (discovered.length === 0) {
+                progress.report({ message: 'Phase 2/2: ARP scan...' });
+                discovered = await discoverAdbServices('connect', false);
+            }
 
             if (discovered.length === 0) {
                 progress.report({ message: 'Phase 2/2: Subnet IP sweep...' });
@@ -148,13 +188,26 @@ async function autoDiscoverConnect(provider) {
             }
 
             if (discovered.length === 0) {
-                vscode.window.showInformationMessage(
-                    "No devices found. Make sure Wireless Debugging is ON and both devices are on the same network.",
-                    'Pair via Code', 'Pair via QR'
-                ).then(choice => {
-                    if (choice === 'Pair via Code') vscode.commands.executeCommand('wirelessDebug.pair');
-                    if (choice === 'Pair via QR') vscode.commands.executeCommand('wirelessDebug.pairQr');
-                });
+                const choice = await vscode.window.showInformationMessage(
+                    "No devices found. If Wireless Debugging is ON, your network might be blocking mDNS, or ADB's mDNS cache is stuck.",
+                    'Restart ADB Server', 'Pair via Code', 'Pair via QR'
+                );
+
+                if (choice === 'Restart ADB Server') {
+                    await vscode.window.withProgress({
+                        location: vscode.ProgressLocation.Notification,
+                        title: "Restarting ADB Server..."
+                    }, async () => {
+                        await execCommand('adb kill-server');
+                        await execCommand('adb start-server');
+                    });
+                    vscode.window.showInformationMessage('ADB Server restarted. Please try Auto-Connect again.');
+                    return;
+                }
+                
+                if (choice === 'Pair via Code') vscode.commands.executeCommand('dev.wirelessDebug.pair');
+                if (choice === 'Pair via QR') vscode.commands.executeCommand('dev.wirelessDebug.pairQr');
+                
                 return;
             }
 
@@ -177,12 +230,52 @@ async function autoDiscoverConnect(provider) {
 }
 
 async function connectDevice(provider, device) {
-    let ipPort = device ? device.id : await vscode.window.showInputBox({
-        prompt: 'Enter IP:Port of the device to connect',
-        placeHolder: '192.168.1.5:5555'
+    let defaultVal = '';
+    let targetIp = '';
+
+    if (device && device.id) {
+        // Clicked from History list
+        targetIp = device.id.split(':')[0];
+        defaultVal = targetIp;
+    } else if (!device && provider && provider.getHistory) {
+        // Clicked from toolbar 'Connect IP'
+        const history = provider.getHistory();
+        if (history.length > 0) {
+            targetIp = history[0].id.split(':')[0];
+            defaultVal = targetIp;
+        }
+    }
+
+    let inputIp = await vscode.window.showInputBox({
+        prompt: 'Enter device IP (port will be found automatically)',
+        value: defaultVal,
+        placeHolder: '192.168.1.5'
     });
 
-    if (!ipPort) return;
+    if (!inputIp) return;
+    inputIp = inputIp.trim();
+
+    let ipPort = inputIp;
+    if (!inputIp.includes(':')) {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Finding connect port for ${inputIp}...`,
+        }, async (progress) => {
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                const discovered = await discoverAdbServices('connect', true);
+                const match = discovered.find(d => d.ipPort.startsWith(`${inputIp}:`));
+                if (match) {
+                    ipPort = match.ipPort;
+                    break;
+                }
+                if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
+            }
+            if (!ipPort.includes(':')) {
+                // Default to 5555 if not found via mDNS
+                ipPort = `${inputIp}:5555`;
+            }
+        });
+    }
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -363,27 +456,45 @@ async function wirelessPairingQr(provider) {
             </html>
         `;
 
-        const ipPort = await vscode.window.showInputBox({
-            prompt: 'Enter IP:Port shown on device (under Wireless Debugging)',
-            placeHolder: '192.168.1.5:44321'
-        });
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Waiting for device to scan QR code...",
+            cancellable: true
+        }, async (progress, token) => {
+            let isCancelled = false;
+            token.onCancellationRequested(() => isCancelled = true);
 
-        if (ipPort) {
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "Pairing with device...",
-                cancellable: false
-            }, async () => {
-                try {
-                    const output = await execCommand(`adb pair ${ipPort}`, pairCode);
-                    vscode.window.showInformationMessage(`Success: ${output}`);
-                    provider.refresh();
-                    panel.dispose();
-                } catch (e) {
-                    vscode.window.showErrorMessage(`Failed: ${e}`);
+            let paired = false;
+            while (!paired && !isCancelled) {
+                const discovered = await discoverAdbServices('pairing', true);
+                // Try pairing with all discovered pairing services using our pairCode
+                for (const dev of discovered) {
+                    try {
+                        const output = await execCommand(`adb pair ${dev.ipPort}`, pairCode);
+                        if (output.toLowerCase().includes('successfully paired')) {
+                            vscode.window.showInformationMessage(`Successfully paired with ${dev.ipPort}!`);
+                            
+                            // Attempt to auto connect
+                            const connectIp = dev.ipPort.split(':')[0];
+                            const connectServices = await discoverAdbServices('connect', true);
+                            const connectDev = connectServices.find(d => d.ipPort.startsWith(`${connectIp}:`));
+                            const connectPort = connectDev ? connectDev.ipPort : `${connectIp}:5555`;
+                            await execCommand(`adb connect ${connectPort}`);
+
+                            provider.refresh();
+                            panel.dispose();
+                            paired = true;
+                            break;
+                        }
+                    } catch (e) {
+                        // Ignore pairing errors as we might be trying wrong devices
+                    }
                 }
-            });
-        }
+                if (!paired) {
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+            }
+        });
     } catch (err) {
         vscode.window.showErrorMessage('Could not generate QR code');
     }
@@ -609,8 +720,34 @@ async function startLiveView(device) {
 }
 
 
+async function refreshDevicesCommand(provider) {
+    provider.refresh();
+    
+    // Check if anything is found
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Window,
+        title: "Refreshing devices..."
+    }, async () => {
+        try {
+            const { getAdbDevices, discoverAdbServices } = require('./utils');
+            const devices = await getAdbDevices();
+            const pairing = await discoverAdbServices('pairing', true);
+            const connect = await discoverAdbServices('connect', true);
+            
+            if (devices.length === 0 && pairing.length === 0 && connect.length === 0) {
+                vscode.window.showInformationMessage("No devices found. Clearing ADB cache and restarting server...");
+                await execCommand('adb kill-server');
+                await execCommand('adb start-server');
+                provider.refresh();
+            }
+        } catch (e) {
+            vscode.window.showErrorMessage(`Refresh Error: ${e}`);
+        }
+    });
+}
+
 module.exports = {
     mirrorDevice, disconnectDevice, pairDevice, connectDevice,
     switchToWireless, openLogcat, takeScreenshot, rebootDevice, wirelessPairingQr,
-    startLiveView, autoDiscoverConnect
+    startLiveView, autoDiscoverConnect, refreshDevicesCommand
 };
