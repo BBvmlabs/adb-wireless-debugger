@@ -21,7 +21,6 @@
     "onView:dev-adbDevices",
     "onView:dev-adbToolbar",
     "onCommand:dev.wirelessDebug.pair",
-    "onCommand:dev.wirelessDebug.pairQr",
     "onCommand:dev.wirelessDebug.connect",
     "onCommand:dev.wirelessDebug.refreshDevices",
     "onCommand:dev.wirelessDebug.disconnect",
@@ -85,11 +84,6 @@
       {
         "command": "dev.wirelessDebug.pair",
         "title": "Pair Device via Code"
-      },
-      {
-        "command": "dev.wirelessDebug.pairQr",
-        "title": "Pair Device via QR Code",
-        "icon": "$(device-camera)"
       },
       {
         "command": "dev.wirelessDebug.connect",
@@ -208,8 +202,6 @@
     "package": "node ./scripts/set-flavor.js prod && npx vsce package"
   },
   "dependencies": {
-    "jmuxer": "^2.1.0",
-    "qrcode": "^1.5.4",
-    "qrcode-terminal": "^0.12.0"
+    "jmuxer": "^2.1.0"
   }
 }

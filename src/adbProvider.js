@@ -164,12 +164,19 @@ class AdbDeviceProvider {
     }
 
     saveToHistory(activeDevices) {
-        const history = this.context.globalState.get('adbRecentDevices', []);
+        let history = this.context.globalState.get('adbRecentDevices', []);
         const net = getCurrentNetwork();
 
         activeDevices.forEach(d => {
             if (d.state !== 'device') return;
-            const idx = history.findIndex(h => h.id === d.id);
+            const entryIpOrSerial = d.id.split(':')[0];
+            
+            // Remove existing duplicates for the same device
+            history = history.filter(h => {
+                const hIpOrSerial = h.id.split(':')[0];
+                return !(h.model === d.model && hIpOrSerial === entryIpOrSerial);
+            });
+            
             const entry = {
                 id: d.id,
                 model: d.model,
@@ -180,11 +187,21 @@ class AdbDeviceProvider {
                 lastSeen: Date.now(),
                 state: 'offline'
             };
-            if (idx > -1) history[idx] = entry;
-            else history.push(entry);
+            history.push(entry);
         });
 
-        const sorted = history.sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 10);
+        // Deduplicate any old history that might already have duplicates
+        const uniqueHistory = [];
+        const seen = new Set();
+        for (const h of history) {
+            const key = `${h.model}_${h.id.split(':')[0]}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueHistory.push(h);
+            }
+        }
+        
+        const sorted = uniqueHistory.sort((a, b) => b.lastSeen - a.lastSeen).slice(0, 10);
         this.context.globalState.update('adbRecentDevices', sorted);
     }
 

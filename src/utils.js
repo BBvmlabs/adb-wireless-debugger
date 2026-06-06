@@ -1,6 +1,10 @@
 const os = require('os');
 const { exec, spawn } = require('child_process');
 
+// Force ADB to use the much more robust Openscreen mDNS backend
+process.env.ADB_MDNS_OPENSCREEN = '1';
+
+
 function execCommand(command, input) {
     return new Promise((resolve, reject) => {
         const child = exec(command, { timeout: 12000 }, (error, stdout, stderr) => {
@@ -44,7 +48,8 @@ function getCurrentNetwork() {
 async function getAdbDevices() {
     try {
         const stdout = await execCommand('adb devices -l');
-        const lines = stdout.split('\n').filter(line => line.trim() && !line.startsWith('List of devices'));
+        const lines = stdout.split('\n')
+            .filter(line => line.trim() && !line.startsWith('List of devices') && !line.includes('._adb-tls-'));
 
         const devices = lines.map(line => {
             const parts = line.split(/\s+/);
