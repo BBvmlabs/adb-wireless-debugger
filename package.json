@@ -3,7 +3,7 @@
   "publisher": "bbvmlabs",
   "displayName": "Wireless Debug",
   "description": "Wireless Android debugging using adb pair and connect",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "icon": "media/icon.png",
   "license": "MIT",
   "repository": {
@@ -21,6 +21,7 @@
     "onView:adbDevices",
     "onView:adbToolbar",
     "onCommand:wirelessDebug.pair",
+    "onCommand:wirelessDebug.pairQr",
     "onCommand:wirelessDebug.connect",
     "onCommand:wirelessDebug.refreshDevices",
     "onCommand:wirelessDebug.disconnect",
@@ -84,6 +85,11 @@
       {
         "command": "wirelessDebug.pair",
         "title": "Pair Device via Code"
+      },
+      {
+        "command": "wirelessDebug.pairQr",
+        "title": "Pair Device via QR Code",
+        "icon": "$(device-camera)"
       },
       {
         "command": "wirelessDebug.connect",
@@ -202,6 +208,8 @@
     "package": "node ./scripts/set-flavor.js prod && npx vsce package"
   },
   "dependencies": {
-    "jmuxer": "^2.1.0"
+    "jmuxer": "^2.1.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0"
   }
 }
