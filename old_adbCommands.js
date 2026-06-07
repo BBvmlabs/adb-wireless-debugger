@@ -1,4 +1,4 @@
-const vscode = require('vscode');
+﻿const vscode = require('vscode');
 const { exec, spawn } = require('child_process');
 const { getDeviceIp, execCommand, getAllNetworks, discoverAdbServices } = require('./utils');
 
@@ -32,12 +32,6 @@ async function pairDevice(provider, discoveryItem) {
     let ipPort = discoveryItem ? discoveryItem.ipPort : null;
 
     if (!ipPort) {
-        // Run a silent kill-server / start-server to clear zombie ADB instances holding mDNS ports
-        try {
-            await execCommand('adb kill-server');
-            await execCommand('adb start-server');
-        } catch (e) { /* ignore errors */ }
-
         const networks = getAllNetworks();
         const networkPicks = networks.map(n => ({
             label: `$(radio-tower) ${n.name}`,
@@ -207,8 +201,8 @@ async function autoDiscoverConnect(provider) {
                     return;
                 }
                 
-                if (choice === 'Pair via Code') vscode.commands.executeCommand('wirelessDebug.pair');
-                if (choice === 'Pair via QR') vscode.commands.executeCommand('wirelessDebug.pairQr');
+                if (choice === 'Pair via Code') vscode.commands.executeCommand('dev.wirelessDebug.pair');
+                if (choice === 'Pair via QR') vscode.commands.executeCommand('dev.wirelessDebug.pairQr');
                 
                 return;
             }
@@ -339,9 +333,9 @@ async function openLogcat(device) {
 
     const outputChannel = vscode.window.createOutputChannel(`Logcat: ${device.model || device.id}`, 'log');
     outputChannel.show(true);
-    outputChannel.appendLine(`╔════════════════════════════════════════╗`);
-    outputChannel.appendLine(`║  Logcat — ${(device.model || device.id).padEnd(29)}║`);
-    outputChannel.appendLine(`╚════════════════════════════════════════╝`);
+    outputChannel.appendLine(`ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù`);
+    outputChannel.appendLine(`Γòæ  Logcat ΓÇö ${(device.model || device.id).padEnd(29)}Γòæ`);
+    outputChannel.appendLine(`ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥`);
     
     if (!packageName.trim()) {
         outputChannel.appendLine('');
@@ -555,18 +549,18 @@ async function wirelessPairingQr(provider) {
             </head>
             <body>
                 <div class="card">
-                    <div class="badge">⚡ ADB Wireless Pairing</div>
+                    <div class="badge">ΓÜí ADB Wireless Pairing</div>
                     <h1>Scan to Connect</h1>
                     <p class="subtitle">Open Wireless Debugging on your Android device</p>
                     <div class="qr-wrap"><img src="${qrDataUrl}" width="200" height="200" /></div>
                     <div class="pin-label">Pairing Code</div>
                     <div class="pin">${pairCode}</div>
                     <div class="steps">
-                        <div class="step"><span class="step-num">1</span><span><b>Settings</b> → Developer Options → <b>Wireless Debugging</b></span></div>
+                        <div class="step"><span class="step-num">1</span><span><b>Settings</b> ΓåÆ Developer Options ΓåÆ <b>Wireless Debugging</b></span></div>
                         <div class="step"><span class="step-num">2</span><span>Tap <b>"Pair device with QR code"</b></span></div>
                         <div class="step"><span class="step-num">3</span><span>Point your camera at the QR code above</span></div>
                     </div>
-                    <div class="tip"><b>Stuck on "Pairing…"?</b> Your network may be blocking mDNS discovery.<br>Use <b>"Pair Device via Code"</b> instead — enter the IP:Port manually.</div>
+                    <div class="tip"><b>Stuck on "PairingΓÇª"?</b> Your network may be blocking mDNS discovery.<br>Use <b>"Pair Device via Code"</b> instead ΓÇö enter the IP:Port manually.</div>
                 </div>
             </body>
             </html>
@@ -616,11 +610,9 @@ async function wirelessPairingQr(provider) {
     }
 }
 
-
-
-// Live View — Sequential capture loop.
+// Live View ΓÇö Sequential capture loop.
 // KEY FIX: Only ONE screencap runs at a time with a 150ms cooldown between frames.
-// The old setInterval approach ran 15 concurrent screencaps/sec → device overload.
+// The old setInterval approach ran 15 concurrent screencaps/sec ΓåÆ device overload.
 // This approach caps load at ~6 FPS and never queues concurrent processes.
 async function startLiveView(device) {
     if (!device) return;
@@ -634,7 +626,7 @@ async function startLiveView(device) {
 
     const panel = vscode.window.createWebviewPanel(
         'adbLiveView',
-        `📱 ${device.model || device.id}`,
+        `≡ƒô▒ ${device.model || device.id}`,
         vscode.ViewColumn.One,
         { enableScripts: true, retainContextWhenHidden: true }
     );
@@ -707,21 +699,21 @@ async function startLiveView(device) {
             <div id="toolbar">
                 <div class="dev-info">
                     <span class="dev-name">${device.model || device.id}</span>
-                    <span class="pill" id="status-pill">Connecting…</span>
+                    <span class="pill" id="status-pill">ConnectingΓÇª</span>
                 </div>
                 <div class="controls">
-                    <button class="btn" onclick="sendKey('66')">↵ Enter</button>
-                    <button class="btn" onclick="sendKey('4')">◀ Back</button>
-                    <button class="btn" onclick="sendKey('3')">⌂ Home</button>
-                    <button class="btn" onclick="sendKey('187')">▣ Recents</button>
-                    <button class="btn" onclick="toggleFit()">⤢ Fit</button>
+                    <button class="btn" onclick="sendKey('66')">Γå╡ Enter</button>
+                    <button class="btn" onclick="sendKey('4')">ΓùÇ Back</button>
+                    <button class="btn" onclick="sendKey('3')">Γîé Home</button>
+                    <button class="btn" onclick="sendKey('187')">Γûú Recents</button>
+                    <button class="btn" onclick="toggleFit()">Γñó Fit</button>
                 </div>
             </div>
             <div id="viewport">
                 <video id="player" autoplay muted playsinline></video>
                 <div id="overlay-msg">
                     <div class="spinner"></div>
-                    <p>Starting video stream…</p>
+                    <p>Starting video streamΓÇª</p>
                 </div>
             </div>
             <script>

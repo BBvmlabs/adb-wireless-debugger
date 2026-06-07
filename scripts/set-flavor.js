@@ -11,7 +11,8 @@ const rootDir = path.join(__dirname, '..');
 const filesToProcess = [
     { filePath: path.join(rootDir, 'package.json'), isJson: true },
     { filePath: path.join(rootDir, 'extension.js'), isJson: false },
-    { filePath: path.join(rootDir, 'src', 'adbCommands.js'), isJson: false }
+    { filePath: path.join(rootDir, 'src', 'adbCommands.js'), isJson: false },
+    { filePath: path.join(rootDir, 'src', 'adbToolbarProvider.js'), isJson: false }
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
