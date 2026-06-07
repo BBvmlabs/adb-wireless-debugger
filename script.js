@@ -1,65 +1,73 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Scroll Reveal Animation using Intersection Observer
-    const revealElements = document.querySelectorAll('.reveal');
+    /* ==========================================================================
+       Mobile Navigation Toggle
+       ========================================================================== */
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const navMobile = document.getElementById('nav-mobile');
+    const header = document.getElementById('header');
 
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-                observer.unobserve(entry.target); // Stop observing once revealed
+    if (mobileToggle && navMobile) {
+        mobileToggle.addEventListener('click', () => {
+            const isActive = mobileToggle.classList.toggle('is-active');
+            navMobile.classList.toggle('is-active');
+            
+            // Prevent body scrolling when menu is open
+            if (isActive) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
             }
         });
-    }, {
-        root: null,
-        threshold: 0.1,
-        rootMargin: "0px 0px -50px 0px"
-    });
 
-    revealElements.forEach(el => {
-        revealObserver.observe(el);
-    });
-
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                const headerOffset = 80;
-                const elementPosition = target.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-  
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: "smooth"
-                });
-            }
+        // Close mobile menu when clicking a link
+        const mobileLinks = navMobile.querySelectorAll('.nav__link--mobile, .btn');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileToggle.classList.remove('is-active');
+                navMobile.classList.remove('is-active');
+                document.body.style.overflow = '';
+            });
         });
-    });
+    }
 
-    // Navbar background blur effect on scroll
-    const navbar = document.querySelector('.navbar');
+    /* ==========================================================================
+       Header Scroll Effect
+       ========================================================================== */
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
-            navbar.style.background = 'rgba(11, 15, 25, 0.9)';
-            navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)';
+            header.style.background = 'rgba(9, 12, 21, 0.95)';
+            header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5)';
         } else {
-            navbar.style.background = 'rgba(11, 15, 25, 0.8)';
-            navbar.style.boxShadow = 'none';
+            header.style.background = 'rgba(9, 12, 21, 0.8)';
+            header.style.boxShadow = 'none';
         }
     });
 
-    // Optional: Add a dynamic glow effect following the mouse on feature cards
-    const featureCards = document.querySelectorAll('.feature-card');
-    
-    featureCards.forEach(card => {
-        card.addEventListener('mousemove', e => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+    /* ==========================================================================
+       Scroll Reveal Animations
+       ========================================================================== */
+    const revealElements = document.querySelectorAll('.reveal');
 
-            card.style.setProperty('--mouse-x', `${x}px`);
-            card.style.setProperty('--mouse-y', `${y}px`);
+    const revealCallback = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Add is-visible to trigger CSS animations
+                entry.target.classList.add('is-visible');
+                // Stop observing once revealed
+                observer.unobserve(entry.target);
+            }
         });
+    };
+
+    const revealOptions = {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1
+    };
+
+    const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
+
+    revealElements.forEach(element => {
+        revealObserver.observe(element);
     });
 });
