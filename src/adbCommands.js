@@ -207,8 +207,8 @@ async function autoDiscoverConnect(provider) {
                     return;
                 }
                 
-                if (choice === 'Pair via Code') vscode.commands.executeCommand('dev.wirelessDebug.pair');
-                if (choice === 'Pair via QR') vscode.commands.executeCommand('dev.wirelessDebug.pairQr');
+                if (choice === 'Pair via Code') vscode.commands.executeCommand('wirelessDebug.pair');
+                if (choice === 'Pair via QR') vscode.commands.executeCommand('wirelessDebug.pairQr');
                 
                 return;
             }
