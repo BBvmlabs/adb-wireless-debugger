@@ -2,7 +2,7 @@
 
 An elegant and powerful Visual Studio Code extension to simplify wireless debugging of Android devices using ADB. Easily connect, pair (via Code or QR), view logs, and mirror your device screen seamlessly in real time!
 
-## 🚀 What's New in Version 1.1.0
+## 🚀 What's New in Version 1.1.2
 
 ### 📺 Buttery Smooth Live View (Screen Mirroring)
 - **High-Performance Streaming:** Fully redesigned live-view screen mirroring streaming at **30+ FPS**.
