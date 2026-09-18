@@ -10,7 +10,8 @@ if (dns.setDefaultAutoSelectFamilyAttemptTimeout) {
 const {
     mirrorDevice, disconnectDevice, pairDevice, connectDevice,
     openLogcat, stopLogcat, takeScreenshot, switchToWireless, rebootDevice,
-    startLiveView, autoDiscoverConnect, refreshDevicesCommand, wirelessPairingQr
+    startLiveView, autoDiscoverConnect, refreshDevicesCommand, wirelessPairingQr,
+    connectDiscoveredDevice
 } = require('./src/adbCommands');
 
 /**
@@ -52,6 +53,7 @@ async function activate(context) {
         vscode.commands.registerCommand('wirelessDebug.switchToWireless', (d) => d && switchToWireless(d, provider)),
         vscode.commands.registerCommand('wirelessDebug.reboot', (d) => d && rebootDevice(d, provider)),
         vscode.commands.registerCommand('wirelessDebug.deleteHistoryItem', (d) => d && provider.deleteHistoryItem(d)),
+        vscode.commands.registerCommand('wirelessDebug.connectDiscovered', (d) => d && connectDiscoveredDevice(provider, d)),
     ];
 
     context.subscriptions.push(provider, treeView, ...commands);

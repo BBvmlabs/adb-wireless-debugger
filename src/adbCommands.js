@@ -838,6 +838,32 @@ async function startLiveView(device) {
 }
 
 
+async function connectDiscoveredDevice(provider, device) {
+    if (!device || !device.ipPort) return;
+    const { ipPort, name } = device;
+
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: `Connecting to ${name || ipPort}...`,
+    }, async () => {
+        try {
+            const output = await execCommand(`adb connect ${ipPort}`);
+            if (output.toLowerCase().includes('connected to') || output.toLowerCase().includes('already connected')) {
+                vscode.window.showInformationMessage(`Connected to ${name || ipPort}`);
+                // Immediate refresh to remove from Discovered
+                provider.refresh();
+                // Delayed refresh so Connected section has time to pick up the device
+                setTimeout(() => provider.refresh(), 1500);
+            } else {
+                vscode.window.showErrorMessage(`Connection failed: ${output}`);
+                provider.refresh();
+            }
+        } catch (e) {
+            vscode.window.showErrorMessage(`Connection error: ${e}`);
+        }
+    });
+}
+
 async function refreshDevicesCommand(provider) {
     provider.refresh();
     
@@ -867,5 +893,5 @@ async function refreshDevicesCommand(provider) {
 module.exports = {
     mirrorDevice, disconnectDevice, pairDevice, connectDevice,
     switchToWireless, openLogcat, stopLogcat, takeScreenshot, rebootDevice, wirelessPairingQr,
-    startLiveView, autoDiscoverConnect, refreshDevicesCommand
+    startLiveView, autoDiscoverConnect, refreshDevicesCommand, connectDiscoveredDevice
 };

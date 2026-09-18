@@ -49,7 +49,20 @@ async function getAdbDevices() {
     try {
         const stdout = await execCommand('adb devices -l');
         const lines = stdout.split('\n')
-            .filter(line => line.trim() && !line.startsWith('List of devices') && !line.includes('._adb-tls-'));
+            .filter(line => {
+                if (!line.trim()) return false;
+                if (line.startsWith('List of devices')) return false;
+                // Filter out bare mDNS service-discovery lines that have NO device state.
+                // When ADB_MDNS_OPENSCREEN=1, connected wireless devices use an mDNS-style
+                // ID (e.g. adb-SERIAL._adb-tls-connect._tcp) — those MUST be kept.
+                if (line.includes('._adb-tls-')) {
+                    const hasState = /\s(device|offline|unauthorized|recovery|sideload)\s/.test(line)
+                                  || line.endsWith('\tdevice') || line.includes('\toffline')
+                                  || line.includes('\tunauthorized');
+                    return hasState;
+                }
+                return true;
+            });
 
         const devices = lines.map(line => {
             const parts = line.split(/\s+/);

@@ -148,8 +148,13 @@ class AdbDeviceProvider {
         }
 
         if (element.label === SEC_DISCOVERED) {
-            return this.discovered.length > 0
-                ? this.discovered
+            // Filter out any device that is already in the Connected list (avoids dual-listing)
+            const connectedIps = new Set(
+                (this.devices || []).map(d => d.id.split(':')[0])
+            );
+            const unconnected = this.discovered.filter(d => !connectedIps.has(d.ipPort.split(':')[0]));
+            return unconnected.length > 0
+                ? unconnected
                 : [{ isPlaceholder: true, label: 'Scanning for nearby devices…' }];
         }
 
