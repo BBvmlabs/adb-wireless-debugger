@@ -146,16 +146,16 @@ class AdbToolbarProvider {
 
 <p class="section-label">Connection</p>
 <div class="btn-grid">
-    <button class="btn primary" onclick="cmd('dev.wirelessDebug.autoConnect')">
+    <button class="btn primary" onclick="cmd('wirelessDebug.autoConnect')">
         <span class="icon">📡</span> Auto-Discover &amp; Connect
     </button>
-    <button class="btn" onclick="cmd('dev.wirelessDebug.pairQr')">
+    <button class="btn" onclick="cmd('wirelessDebug.pairQr')">
         <span class="icon">📷</span> Pair via QR
     </button>
-    <button class="btn" onclick="cmd('dev.wirelessDebug.pair')">
+    <button class="btn" onclick="cmd('wirelessDebug.pair')">
         <span class="icon">🔑</span> Pair via Code
     </button>
-    <button class="btn" onclick="cmd('dev.wirelessDebug.connect')">
+    <button class="btn" onclick="cmd('wirelessDebug.connect')">
         <span class="icon">🔗</span> Connect IP
     </button>
 </div>
@@ -163,10 +163,10 @@ class AdbToolbarProvider {
 <div class="separator"></div>
 <p class="section-label">Tools</p>
 <div class="btn-grid">
-    <button class="btn" onclick="cmd('dev.wirelessDebug.refreshDevices')">
+    <button class="btn" onclick="cmd('wirelessDebug.refreshDevices')">
         <span class="icon">🔄</span> Refresh
     </button>
-    <button class="btn" onclick="cmd('dev.wirelessDebug.clearHistory')" style="border-color: rgba(252,79,79,0.25);">
+    <button class="btn" onclick="cmd('wirelessDebug.clearHistory')" style="border-color: rgba(252,79,79,0.25);">
         <span class="icon">🗑️</span> Clear History
     </button>
 </div>
